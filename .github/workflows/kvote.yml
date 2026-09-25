@@ -1,0 +1,22 @@
+name: Kvote push
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - "kvote_push.py"
+      - ".github/workflows/kvote.yml"
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Skini Mozzart kvote i pošalji u Worker
+        env:
+          PUSH_URL: ${{ secrets.PUSH_URL }}
+          PUSH_KEY: ${{ secrets.PUSH_KEY }}
+        run: python3 kvote_push.py
