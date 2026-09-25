@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Kvote bot — skida PRAVE Mozzart kvote (fudbal + košarka) i šalje ih u Kvote Worker.
+Kvote bot — skida PRAVE kvote sa MOZZARTA i MAXBETA i šalje u Kvote Worker.
 
 Pokreće GitHub Actions svakih 10 minuta (24/7). Radi i lokalno:
     PUSH_URL=... PUSH_KEY=... python3 kvote_push.py
@@ -15,7 +15,7 @@ BASE = "https://www.mozzartbet.com"
 PUSH_URL = os.environ.get(
     "PUSH_URL", "https://tight-glitter-2dcb.miloshawramow.workers.dev/push"
 )
-PUSH_KEY = os.environ.get("PUSH_KEY", "")
+PUSH_KEY = os.environ.get("PUSH_KEY", "kpv2_8e82b7410dd3f71eff31")
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
@@ -70,8 +70,8 @@ def parsiraj_kvote(stavka):
     return out
 
 
-def pokupi():
-    """Cela prematch ponuda (fudbal + košarka) kao {id: {s,l,d,g,p,k}}."""
+def pokupi_mozzart():
+    """Cela Mozzart prematch ponuda (fudbal + košarka) kao {id: {s,l,d,g,p,k}}."""
     svi = {}
     for sport, sid in SPORTOVI.items():
         for strana in range(MAX_STRANICA):
@@ -107,11 +107,36 @@ def pokupi():
     return svi
 
 
-def posalji(meci):
+def pokupi_maxbet():
+    """Cela MaxBet ponuda (prematch + live) kao {id: {s,l,d,g,p,k}}."""
+    import maxbet  # isti modul kao u lokalnom projektu
+
+    svi = {}
+    for m in maxbet.pokupi():
+        svi[int(m["id"])] = {
+            "s": m["sport"],
+            "l": m["liga"],
+            "d": m["domacin"],
+            "g": m["gost"],
+            "p": int(m["pocetak"] or 0),
+            "k": {f'{k["market"]}|{k["ishod"]}': k["vrednost"] for k in m["kvote"]},
+        }
+    return svi
+
+
+def pokupi():
+    """Nazad-kompatibilno: Mozzart ponuda."""
+    return pokupi_mozzart()
+
+
+def posalji(meci, izvor="mozzart"):
     url = PUSH_URL
+    sep = "&" if "?" in url else "?"
     if PUSH_KEY:
-        sep = "&" if "?" in url else "?"
         url = f"{url}{sep}key={PUSH_KEY}"
+        sep = "&"
+    if izvor and izvor != "mozzart":
+        url = f"{url}{sep}izvor={izvor}"
     req = urllib.request.Request(
         url,
         data=json.dumps(meci).encode(),
@@ -123,13 +148,22 @@ def posalji(meci):
 
 def main():
     sada = time.time()
-    meci = pokupi()
-    svi = {i: m for i, m in meci.items() if m["p"] >= sada - SVEZE}
-    if not svi:
-        print("Greška: prazna ponuda — ništa nije poslato (sigurnosna zaštita)")
-        sys.exit(1)
-    odg = posalji(svi)
-    print(f"Poslato {len(svi)} mečeva (od ukupno {len(meci)}) → {odg}")
+    for izvor, pokupi_f in (("mozzart", pokupi_mozzart), ("maxbet", pokupi_maxbet)):
+        try:
+            meci = {
+                i: m for i, m in pokupi_f().items() if m["p"] >= sada - SVEZE
+            }
+        except Exception as e:
+            print(f"{izvor}: greška pri skidanju: {e}")
+            continue
+        if not meci:
+            print(f"{izvor}: prazna ponuda — preskačem")
+            continue
+        try:
+            odg = posalji(meci, izvor)
+            print(f"{izvor}: poslato {len(meci)} mečeva → {odg}")
+        except Exception as e:
+            print(f"{izvor}: push greška: {e}")
 
 
 if __name__ == "__main__":
