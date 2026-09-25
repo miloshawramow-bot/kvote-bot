@@ -20,3 +20,14 @@ jobs:
           PUSH_URL: ${{ secrets.PUSH_URL }}
           PUSH_KEY: ${{ secrets.PUSH_KEY }}
         run: python3 kvote_push.py
+      - name: Heartbeat (drži workflow aktivan svaki dan)
+        run: |
+          TODAY=$(date -u +%F)
+          if [ "$(cat zadnje.txt 2>/dev/null)" != "$TODAY" ]; then
+            echo "$TODAY" > zadnje.txt
+            git config user.name "kvote-bot"
+            git config user.email "kvote-bot@users.noreply.github.com"
+            git add zadnje.txt
+            git commit -m "Heartbeat $TODAY" || true
+            git push || true
+          fi
