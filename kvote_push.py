@@ -180,6 +180,25 @@ def posalji(meci, izvor="mozzart"):
         return json.loads(r.read())
 
 
+def posalji_rezultate(redovi):
+    """POST /push_rezultati?key=... — rezultati završenih mečeva."""
+    osnova = PUSH_URL.rstrip("/")
+    if osnova.endswith("/push"):
+        url = osnova[: -len("/push")] + "/push_rezultati"
+    else:
+        url = osnova + "/push_rezultati"
+    sep = "&" if "?" in url else "?"
+    if PUSH_KEY:
+        url = f"{url}{sep}key={PUSH_KEY}"
+    req = urllib.request.Request(
+        url,
+        data=json.dumps({"rezultati": redovi}).encode(),
+        headers={"Content-Type": "application/json", "User-Agent": UA},
+    )
+    with urllib.request.urlopen(req, timeout=120) as r:
+        return json.loads(r.read())
+
+
 def main():
     sada = time.time()
     for izvor, pokupi_f in (("mozzart", pokupi_mozzart), ("maxbet", pokupi_maxbet),
@@ -199,6 +218,13 @@ def main():
             print(f"{izvor}: poslato {len(meci)} mečeva → {odg}")
         except Exception as e:
             print(f"{izvor}: push greška: {e}")
+    try:
+        import rezultati
+        rez = rezultati.pokupi(dana=2)
+        if rez:
+            print(f"rezultati: {len(rez)} završenih → {posalji_rezultate(rez)}")
+    except Exception as e:
+        print(f"rezultati greška: {e}")
 
 
 if __name__ == "__main__":
