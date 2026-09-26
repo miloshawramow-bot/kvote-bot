@@ -7,31 +7,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Probe
+      - name: Kambi struktura
         run: |
           set +e
           UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
-          R=probe_result.txt
-          : > $R
-          probe() {
-            name="$1"; url="$2"; shift 2
-            code=$(curl -s -m 45 -A "$UA" "$@" -o /tmp/p.out -w "%{http_code}" "$url" || echo ERR)
-            size=$(stat -c %s /tmp/p.out 2>/dev/null || echo 0)
-            echo "== $name | HTTP $code | ${size}B" >> $R
-            head -c 300 /tmp/p.out >> $R 2>/dev/null || true; echo >> $R
-          }
-          probe KAMBI_UBUK "https://eu-offering.kambicdn.org/offering/v2018/ubuk/listView/football.json?lang=en_GB&market=GB-UK&channel_id=1"
-          probe KAMBI_888 "https://eu-offering.kambicdn.org/offering/v2018/888uk/listView/football.json?lang=en_GB&market=GB-UK&channel_id=1"
-          probe KAMBI_UNISE "https://eu-offering-api.kambicdn.com/offering/v2018/ubse/listView/football.json?lang=sv_SE&market=SE&channel_id=1"
-          probe PIN_SPORTS "https://guest.api.arcadia.pinnacle.com/0.1/sports" -H "Referer: https://www.pinnacle.com/" -H "Origin: https://www.pinnacle.com"
-          probe PIN_UPCOMING "https://guest.api.arcadia.pinnacle.com/0.1/upcoming?brandId=2000&siteId=2&sportId=29&oddsFormat=1&device=desktop&locale=en" -H "Referer: https://www.pinnacle.com/" -H "Origin: https://www.pinnacle.com"
-          probe MARATHON_TREE "https://www.marathonbet.com/en/rest/sb/prematch/tree/?path=/Soccer&locale=en"
-          probe BET365 "https://www.bet365.com/"
-          probe BWIN_SPORTS "https://sports.bwin.com/en/sports"
-          probe WILLIAMHILL "https://sports.williamhill.com/football"
+          curl -s -m 60 -A "$UA" "https://eu-offering-api.kambicdn.com/offering/v2018/ubse/listView/football.json?lang=sv_SE&market=SE&channel_id=1" -o f.json
+          curl -s -m 60 -A "$UA" "https://eu-offering-api.kambicdn.com/offering/v2018/ubse/listView/basketball.json?lang=sv_SE&market=SE&channel_id=1" -o b.json
+          cat > /tmp/parse.py <<'EOF'
+import json
+for ime in ("f.json", "b.json"):
+    try:
+        d = json.load(open(ime))
+    except Exception as e:
+        print(ime, "GRESKA", e)
+        continue
+    ev = d.get("events", [])
+    print(f"== {ime}: {len(ev)} evenata | korenski kljucevi: {sorted(d.keys())}")
+    for e0 in ev[:2]:
+        print("-- event kljucevi:", sorted(e0.keys()))
+        print("-- event.event:", json.dumps(e0.get("event", {}))[:700])
+        bo = e0.get("betOffers", [])
+        print("-- betOffers:", len(bo))
+        for b in bo[:3]:
+            print("   offer kljucevi:", sorted(b.keys()))
+            print("   offer:", json.dumps({k: v for k, v in b.items() if k != "outcomes"})[:350])
+            for o in (b.get("outcomes") or [])[:4]:
+                print("     outcome:", json.dumps(o)[:300])
+EOF
+          python3 /tmp/parse.py > probe_result.txt 2>&1
+          head -c 1500 probe_result.txt
       - name: Commit results
         run: |
           git config user.name "kvote-bot"
           git config user.email "kvote-bot@users.noreply.github.com"
           git add probe_result.txt
-          git commit -m "probe world feeds" && git push || echo "nothing to commit"
+          git commit -m "kambi struktura" && git push || echo "nista za commit"
