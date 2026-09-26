@@ -107,6 +107,9 @@ def pokupi():
             putanja = [p.get("englishName") or p.get("name") for p in (e.get("path") or [])]
             if len(putanja) >= 3 and putanja[-1]:
                 liga = f"{putanja[-2]} · {putanja[-1]}" if putanja[-2] else str(putanja[-1])
+            if any("esport" in str(p).lower() or "esoccer" in str(p).lower() for p in putanja) \
+                    or "esport" in str(liga).lower():
+                continue  # bez FIFA/Esports "mečeva" — samo pravi sport
 
             kvote = []
             for b in ev.get("betOffers") or []:
