@@ -1,0 +1,62 @@
+== KAMBI_UBUK | HTTP 000ERR | 0B
+
+== KAMBI_888 | HTTP 000ERR | 0B
+
+== KAMBI_UNISE | HTTP 200 | 645168B
+{"events":[{"event":{"id":1029180051,"name":"Uruguay Montevideo FC - Rentistas","nameDelimiter":"-","englishName":"Uruguay Montevideo FC - Rentistas","homeName":"Uruguay Montevideo FC","awayName":"Rentistas","start":"2026-09-26T16:00:00Z","group":"Segunda Division","groupId":2000056865,"path":[{"id"
+== PIN_SPORTS | HTTP 200 | 14400B
+[
+  {
+    "featureOrder": -1,
+    "id": 1,
+    "isFeatured": false,
+    "isHidden": false,
+    "isSticky": false,
+    "matchupCount": 0,
+    "matchupCountSE": 0,
+    "name": "Badminton",
+    "primaryMarketType": "moneyline"
+  },
+  {
+    "featureOrder": -1,
+    "id": 2,
+    "isFeatured": false,
+    "
+== PIN_UPCOMING | HTTP 403 | 564B
+<html>
+<head><title>403 Forbidden</title></head>
+<body bgcolor="white">
+<center><h1>403 Forbidden</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!--
+== MARATHON_TREE | HTTP 404 | 19703B
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <script type="text/javascript">
+ //<![CDATA[
+ initData = {"tzPrefix":"GMT+1","isBelarus":false,"openAddMarketsSeparately":false,"joinCuracaoQrEnabled":true,"selfPunterRegistrationEnabled":true,"pageErrorStatus":"notFound","isMarathon":true,"visualizationType"
+== BET365 | HTTP 403 | 4546B
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en-US"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en-US"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en-US"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en-US"> <!
+== BWIN_SPORTS | HTTP 301 | 0B
+
+== WILLIAMHILL | HTTP 403 | 3525B
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>William Hill - Data Centre block</title>
+    <style>
+      body {
+        background: #00143c;
+ 
