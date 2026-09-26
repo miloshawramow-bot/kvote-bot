@@ -141,6 +141,23 @@ def pokupi_matchbook():
     return svi
 
 
+def pokupi_unibet():
+    """Unibet (Kambi feed) kao {id: {...}} — radi sa GH runnera i iz EU."""
+    import unibet
+
+    svi = {}
+    for m in unibet.pokupi():
+        svi[int(m["id"])] = {
+            "s": m["sport"],
+            "l": m["liga"],
+            "d": m["domacin"],
+            "g": m["gost"],
+            "p": int(m["pocetak"] or 0),
+            "k": {f'{k["market"]}|{k["ishod"]}': k["vrednost"] for k in m["kvote"]},
+        }
+    return svi
+
+
 def pokupi():
     """Nazad-kompatibilno: Mozzart ponuda."""
     return pokupi_mozzart()
@@ -166,7 +183,7 @@ def posalji(meci, izvor="mozzart"):
 def main():
     sada = time.time()
     for izvor, pokupi_f in (("mozzart", pokupi_mozzart), ("maxbet", pokupi_maxbet),
-                            ("matchbook", pokupi_matchbook)):
+                            ("matchbook", pokupi_matchbook), ("unibet", pokupi_unibet)):
         try:
             meci = {
                 i: m for i, m in pokupi_f().items() if m["p"] >= sada - SVEZE
