@@ -199,6 +199,25 @@ def posalji_rezultate(redovi):
         return json.loads(r.read())
 
 
+def posalji_drops(redovi):
+    """POST /push_drops?key=... — OddsPortal globalni padovi (agregator)."""
+    osnova = PUSH_URL.rstrip("/")
+    if osnova.endswith("/push"):
+        url = osnova[: -len("/push")] + "/push_drops"
+    else:
+        url = osnova + "/push_drops"
+    sep = "&" if "?" in url else "?"
+    if PUSH_KEY:
+        url = f"{url}{sep}key={PUSH_KEY}"
+    req = urllib.request.Request(
+        url,
+        data=json.dumps({"drops": redovi}).encode(),
+        headers={"Content-Type": "application/json", "User-Agent": UA},
+    )
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.loads(r.read())
+
+
 def main():
     sada = time.time()
     for izvor, pokupi_f in (("mozzart", pokupi_mozzart), ("maxbet", pokupi_maxbet),
@@ -225,6 +244,13 @@ def main():
             print(f"rezultati: {len(rez)} završenih → {posalji_rezultate(rez)}")
     except Exception as e:
         print(f"rezultati greška: {e}")
+    try:
+        import oddsportal
+        dr = oddsportal.pokupi()
+        if dr:
+            print(f"oddsportal: {len(dr)} globalnih padova → {posalji_drops(dr)}")
+    except Exception as e:
+        print(f"oddsportal greška: {e}")
 
 
 if __name__ == "__main__":
